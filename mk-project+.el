@@ -121,7 +121,7 @@ to a directory.")
     (when (file-exists-p revive-file)
       (setq revive:configuration-file revive-file)
       (resume)
-      (message "Project environment file `%s' has loaded." revive-file))))
+      (message "Project environment file `%s' loaded." revive-file))))
 
 (defvar revive:configuration-file)
 (declare-function save-current-configuration "revive")
@@ -130,7 +130,7 @@ to a directory.")
   (let ((revive-file (mk-proj+-revive-file name)))
     (setq revive:configuration-file revive-file)
     (save-current-configuration)
-    (message "Project environment has written in `%s'." revive-file)))
+    (message "Project environment file `%s' saved." revive-file)))
 
 (eval-after-load 'revive
   '(progn
@@ -166,8 +166,7 @@ to a directory.")
                                          cmd-names nil t)))
           (setq mk-proj-compile-cmd (cdr (assoc cmd-name cmds))))
       ; if there is only one command, use that one.
-      (setq mk-proj-compile-cmd (cdr (car cmds))))
-    (message (format "Project command: %s" mk-proj-compile-cmd))))
+      (setq mk-proj-compile-cmd (cdr (car cmds))))))
 
 (defun project-revive-load ()
   "TODO"
@@ -180,7 +179,8 @@ to a directory.")
   (mk-proj+-revive-save mk-proj-name))
 
 (defun project-easy-def (name basedir &optional cmd-alist)
-  "TODO"
+  "Define a project easily. It is a high-level wrapper of `project-def' of
+`mk-project.el'. If CMD-ALIST is not given, no commands are registered."
   (mk-proj+-prepare-dir name)
   (let ((prj-dir (mk-proj+-dir name)))
     (mk-proj+-register-cmds name basedir cmd-alist)
@@ -189,7 +189,7 @@ to a directory.")
                    (shutdown-hook    nil)
                    (ignore-patterns  ("*.cm[ioax]" "*.cmxa" "*.o" "*.a"
                                       "*.elc"))
-                   (basedir          ,basedir)
+                   (basedir          ,(file-name-as-directory basedir))
                    (file-list-cache  ,(expand-file-name "files" prj-dir))
                    (open-files-cache ,(expand-file-name "open-files" prj-dir))
                    (compile-cmd      ,(mk-proj+-default-cmd name))
