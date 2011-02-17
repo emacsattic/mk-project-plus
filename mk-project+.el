@@ -25,10 +25,39 @@
 
 (require 'mk-project)
 
-(defvar mk-proj+-basedir "~/.emacs.d/mk-project/")
+(defconst mk-proj+-version "0.1")
+
+(defgroup mk-proj+ nil
+  "Enhancement of `mk-project'"
+  :tag "Mk-project+"
+  :prefix "mk-proj+-"
+  :group 'tools)
+
+(defcustom mk-proj+-conf-dir "~/.emacs.d/mk-project/"
+  "Project configuration directory. Every configuration files is
+stored under this directory."
+  :type 'directory
+  :group 'tools)
+
+(defcustom mk-proj+-revive-filename ".revive.el"
+  "Name of `revive' configuration files."
+  :type 'string
+  :group 'tools)
+
+(defcustom mk-proj+-close-nonfile-buffers t
+  "If non-nil, the functions, which closes a project, also closes related
+non-file buffers."
+  :type 'boolean
+  :group 'tools)
+
+(defcustom mk-proj+-close-nonproject-buffers t
+  "If non-nil, the functions, which closes a project, also closes
+non-project buffers."
+  :type 'boolean
+  :group 'tools)
 
 (defsubst mk-proj+-dir (name)
-  (expand-file-name name mk-proj+-basedir))
+  (expand-file-name name mk-proj+-conf-dir))
 
 (defconst mk-proj+-vcs-file '((".svn"   . svn)
                               (".git"   . git)
@@ -102,9 +131,57 @@ to a directory.")
       nil)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Integration with `revive.el'
+;;; Enhancement of project file closing
 
-(defvar mk-proj+-revive-filename ".revive.el")
+(defun mk-proj+-buffer-p (buf)
+  "Determine whether the given buffer is related to the current project or not.
+If `mk-proj+-close-nonfile-buffers' is non-nil, unlike `mk-proj-buffer-p', this
+function also returns non-nil for the non-file buffers that `default-directory'
+is the base directory of the project."
+  (let ((file-name (mk-proj-buffer-name buf))
+        (basedir (file-name-as-directory (expand-file-name mk-proj-basedir))))
+    (if file-name
+        (or mk-proj+-close-nonproject-buffers
+            (string-match (concat "^" (regexp-quote mk-proj-basedir))
+                          file-name))
+      (and mk-proj+-close-nonfile-buffers
+           (not (minibufferp buf))
+           (or mk-proj+-close-nonproject-buffers
+               (with-current-buffer buf
+                 (string= (file-name-as-directory
+                           (expand-file-name default-directory))
+                       basedir)))))))
+
+(defun mk-proj+-buffers ()
+  "Get a list of buffers that reside in the current project's basedir.
+Unlike `mk-proj-buffers', the list also contains the non-file
+buffers that `default-directory' is the base directory of the project."
+  (let ((buffers nil))
+    (dolist (b (buffer-list))
+      (when (mk-proj+-buffer-p b) (push b buffers)))
+    buffers))
+
+(defun mk-proj+-closable-buffer-p (buf)
+  (let ((name (buffer-name buf)))
+    (and (not (string= name "*Messages*"))
+         (not (string= name "*scratch*"))
+         (or (not (buffer-file-name buf))
+             (not (buffer-modified-p buf))))))
+
+(defun mk-proj+-close-buffers ()
+  "Close all unmodified buffers that reside in the project's basedir.
+Unlike `project-close-files', the list also closes the non-file
+buffers that `default-directory' is the base directory of the project."
+  (interactive)
+  (mk-proj-assert-proj)
+  (dolist (b (mk-proj+-buffers))
+    (when (mk-proj+-closable-buffer-p b)
+      (kill-buffer b))))
+
+(add-hook 'mk-proj-shutdown-hook 'mk-proj+-close-buffers)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Integration with `revive.el'
 
 (defsubst mk-proj+-revive-file (name)
   (expand-file-name mk-proj+-revive-filename
