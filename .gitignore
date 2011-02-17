@@ -1,0 +1,3 @@
+*.elc
+mk-project.el*
+mukka-projects.el*
