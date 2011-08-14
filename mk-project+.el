@@ -255,7 +255,10 @@ buffers that `default-directory' is the base directory of the project."
   (mk-proj-assert-proj)
   (mk-proj+-revive-save mk-proj-name))
 
-(defun project-easy-def (name basedir &optional cmd-alist)
+(defvar project-default-ignore-patterns
+  '("*.cm[ioax]" "*.cmxa" "*.o" "*.a" "*.elc"))
+
+(defun project-easy-def (name basedir &optional cmd-alist ignore-patterns)
   "Define a project easily. It is a high-level wrapper of `project-def' of
 `mk-project.el'. If CMD-ALIST is not given, no commands are registered."
   (mk-proj+-prepare-dir name)
@@ -264,8 +267,8 @@ buffers that `default-directory' is the base directory of the project."
     (project-def name
                  `((startup-hook     nil)
                    (shutdown-hook    nil)
-                   (ignore-patterns  ("*.cm[ioax]" "*.cmxa" "*.o" "*.a"
-                                      "*.elc"))
+                   (ignore-patterns  ,(append project-default-ignore-patterns
+                                              ignore-patterns))
                    (basedir          ,(file-name-as-directory basedir))
                    (file-list-cache  ,(expand-file-name "files" prj-dir))
                    (open-files-cache ,(expand-file-name "open-files" prj-dir))
