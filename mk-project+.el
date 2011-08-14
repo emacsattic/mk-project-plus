@@ -27,34 +27,40 @@
 
 (defconst mk-proj+-version "0.1")
 
-(defgroup mk-proj+ nil
+(defgroup mk-project+ nil
   "Enhancement of `mk-project'"
   :tag "Mk-project+"
   :prefix "mk-proj+-"
-  :group 'tools)
+  :group 'mk-project)
 
 (defcustom mk-proj+-conf-dir "~/.emacs.d/mk-project/"
   "Project configuration directory. Every configuration files is
 stored under this directory."
   :type 'directory
-  :group 'tools)
+  :group 'mk-project+)
 
 (defcustom mk-proj+-revive-filename ".revive.el"
   "Name of `revive' configuration files."
   :type 'string
-  :group 'tools)
+  :group 'mk-project+)
 
 (defcustom mk-proj+-close-nonfile-buffers t
   "If non-nil, the functions, which closes a project, also closes related
 non-file buffers."
   :type 'boolean
-  :group 'tools)
+  :group 'mk-project+)
 
 (defcustom mk-proj+-close-nonproject-buffers t
   "If non-nil, the functions, which closes a project, also closes
 non-project buffers."
   :type 'boolean
-  :group 'tools)
+  :group 'mk-project+)
+
+(defcustom mk-proj+-default-ignore-patterns
+  '("*.cm[ioax]" "*.cmxa" "*.o" "*.a" "*.elc")
+  "Default ignore file patterns"
+  :type '(repeat (string :tag "Glob pattern"))
+  :group 'mk-project+)
 
 (defsubst mk-proj+-dir (name)
   (expand-file-name name mk-proj+-conf-dir))
@@ -296,9 +302,6 @@ buffers that `default-directory' is the base directory of the project."
   (mk-proj-assert-proj)
   (mk-proj+-revive-save mk-proj-name))
 
-(defvar project-default-ignore-patterns
-  '("*.cm[ioax]" "*.cmxa" "*.o" "*.a" "*.elc"))
-
 (defun project-easy-def (name basedir &optional cmd-alist ignore-patterns)
   "Define a project easily. It is a high-level wrapper of `project-def' of
 `mk-project.el'. If CMD-ALIST is not given, no commands are registered."
@@ -308,7 +311,7 @@ buffers that `default-directory' is the base directory of the project."
     (project-def name
                  `((startup-hook     nil)
                    (shutdown-hook    nil)
-                   (ignore-patterns  ,(append project-default-ignore-patterns
+                   (ignore-patterns  ,(append mk-proj+-default-ignore-patterns
                                               ignore-patterns))
                    (basedir          ,(file-name-as-directory basedir))
                    (file-list-cache  ,(expand-file-name "files" prj-dir))
