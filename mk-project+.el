@@ -25,7 +25,7 @@
 
 (require 'mk-project)
 
-(defconst mk-proj+-version "0.1")
+(defconst mk-proj+-version "0.2")
 
 (defgroup mk-project+ nil
   "Enhancement of `mk-project'"
