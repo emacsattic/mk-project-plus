@@ -267,6 +267,25 @@ buffers that `default-directory' is the base directory of the project."
       ; if there is only one command, use that one.
       (setq mk-proj-compile-cmd (cdr (car cmds))))))
 
+(defun project-execute-cmd ()
+  "Run the (compile) command for this project."
+  (interactive)
+  (mk-proj-assert-proj)
+  (let ((default-directory mk-proj-basedir)
+        (mk-proj-compile-cmd))
+    (project-select-cmd)
+    (cond ((stringp mk-proj-compile-cmd)
+           (message (format "Executing the project command: %s"
+                            mk-proj-compile-cmd))
+           (let ((compile-command mk-proj-compile-cmd)
+                 (compilation-read-command nil))
+             (call-interactively 'compile)))
+          ((functionp mk-proj-compile-cmd)
+           (cond ((commandp mk-proj-compile-cmd)
+                  (call-interactively mk-proj-compile-cmd))
+                 (t (funcall mk-proj-compile-cmd))))
+          (t (error "No compile command?")))))
+
 (defun project-revive-load ()
   "TODO"
   (mk-proj-assert-proj)
@@ -308,6 +327,7 @@ buffers that `default-directory' is the base directory of the project."
 (global-set-key (kbd "C-c p s") 'project-status)
 (global-set-key (kbd "C-c p d") 'project-dired)
 (global-set-key (kbd "C-c p t") 'project-tags)
+(global-set-key (kbd "C-c p <return>") 'project-execute-cmd)
 (global-set-key (kbd "C-x C-o") 'project-visit-file)
 
 (provide 'mk-project+)
