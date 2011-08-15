@@ -89,7 +89,7 @@ to a directory.")
     (dolist (vcs mk-proj+-cmd nil)
       (when (file-exists-p (expand-file-name (car vcs) dir))
         (throw 'found (cdr vcs))))
-    ""))
+    (throw 'notfound nil)))
 
 (defvar mk-proj+-cmd-table (make-hash-table :test 'equal))
 
@@ -100,7 +100,8 @@ to a directory.")
 (defun mk-proj+-register-cmds (name basedir &optional cmd-alist)
   (puthash name
            (or cmd-alist
-               (list (mk-proj+-cmd-of-dir basedir)))
+               (catch 'notfound
+                 (list (mk-proj+-cmd-of-dir basedir))))
            mk-proj+-cmd-table))
 
 (defun mk-proj+-default-cmd (name)
@@ -316,7 +317,9 @@ buffers that `default-directory' is the base directory of the project."
                    (basedir          ,(file-name-as-directory basedir))
                    (file-list-cache  ,(expand-file-name "files" prj-dir))
                    (open-files-cache ,(expand-file-name "open-files" prj-dir))
-                   (compile-cmd      ,(mk-proj+-default-cmd name))
+                   (compile-cmd      ,(condition-case nil
+                                          (mk-proj+-default-cmd name)
+                                        (error nil)))
                    (vcs              ,(mk-proj+-vcs-of-dir basedir))))))
 
 (global-set-key (kbd "C-c p c") 'project-compile)
