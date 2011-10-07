@@ -190,43 +190,55 @@ buffers that `default-directory' is the base directory of the project."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Integration with `revive.el'
 
+;; dummy definitions to suppress compiler warnings
+(defvar revive:configuration-file)
+(declare-function resume "revive")
+(defvar revive:configuration-file)
+(declare-function save-current-configuration "revive")
+
 (defsubst mk-proj+-revive-file (name)
   (expand-file-name mk-proj+-revive-filename
                     (mk-proj+-dir name)))
 
+(defun mk-proj+-revive-availablep ()
+  (and (functionp 'resume)
+       (functionp 'save-current-configuration)))
+
 (defun mk-proj+-assert-revive ()
-  (unless (featurep 'revive) (error "No `revive' provided.")))
+  (unless (mk-proj+-revive-availablep)
+    (error "No `revive' provided.")))
 
-(defvar revive:configuration-file)
-(declare-function resume "revive")
 (defun mk-proj+-revive-load (name)
-  (mk-proj+-assert-revive)
-  (let ((revive-file (mk-proj+-revive-file name)))
-    (when (file-exists-p revive-file)
-      (setq revive:configuration-file revive-file)
-      (resume)
-      (message "Project environment file `%s' loaded." revive-file))))
+  "Restore previous `revive' session of the project, NAME."
+  (when (mk-proj+-revive-availablep)
+    (let ((revive-file (mk-proj+-revive-file name)))
+      (when (file-exists-p revive-file)
+        (setq revive:configuration-file revive-file)
+        (resume)
+        (message "Project environment file `%s' loaded." revive-file)))))
 
-(defvar revive:configuration-file)
-(declare-function save-current-configuration "revive")
+;; Restore `revive' session after loading a project automatically
+(defadvice project-load (after revive-load-after-project-load)
+  (mk-proj+-revive-load mk-proj-name))
+(ad-activate 'project-load)
+
 (defun mk-proj+-revive-save (name)
-  (mk-proj+-assert-revive)
-  (let ((revive-file (mk-proj+-revive-file name)))
-    (setq revive:configuration-file revive-file)
-    (save-current-configuration)
-    (message "Project environment file `%s' saved." revive-file)))
+  "Save current `revive' session of the project, NAME."
+  (when (mk-proj+-revive-availablep)
+    (let ((revive-file (mk-proj+-revive-file name)))
+      (setq revive:configuration-file revive-file)
+      (save-current-configuration)
+      (message "Project environment file `%s' saved." revive-file))))
 
-(eval-after-load 'revive
-  '(progn
-     (defadvice project-load (after revive-load-after-project-load)
-       (mk-proj+-revive-load mk-proj-name))
-     (defadvice project-unload (before revive-save-before-project-unload)
-       (when mk-proj-name (mk-proj+-revive-save mk-proj-name)))
-     (defadvice mk-proj-kill-emacs-hook (before revive-save-before-kill-emacs)
-       (when mk-proj-name (mk-proj+-revive-save mk-proj-name)))
-     (ad-activate 'project-load)
-     (ad-activate 'project-unload)
-     (ad-activate 'mk-proj-kill-emacs-hook)))
+;; Save `revive' session before closing a project automatically
+(defadvice project-unload (before revive-save-before-project-unload)
+  (when mk-proj-name (mk-proj+-revive-save mk-proj-name)))
+(ad-activate 'project-unload)
+
+;; Save `revive' session before quitting Emacs automatically
+(defadvice mk-proj-kill-emacs-hook (before revive-save-before-kill-emacs)
+  (when mk-proj-name (mk-proj+-revive-save mk-proj-name)))
+(ad-activate 'mk-proj-kill-emacs-hook)
 
 (defun mk-proj+-completing-read (prompt
                                  collection
