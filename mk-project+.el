@@ -1,8 +1,9 @@
 ;;; mk-project+.el --- Enhancement of `mk-project.el'
 
-;; Copyright (C) 2010  Seungcheol Jung
+;; Copyright (C) 2010-2011  Seung Cheol Jung
 
-;; Author: Seungcheol Jung <scjung.hyu at gmail dot com>
+;; Author: Seung Cheol Jung <scjung.hyu at gmail dot com>
+;; Version: 0.2.1
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -25,7 +26,7 @@
 
 (require 'mk-project)
 
-(defconst mk-proj+-version "0.2")
+(defconst mk-proj+-version "0.2.1")
 
 (defgroup mk-project+ nil
   "Enhancement of `mk-project'"
@@ -126,8 +127,6 @@ to a directory.")
         (call-process-shell-command "find" nil (current-buffer) nil
                       mk-proj-basedir "-type" "d"))
       (split-string (buffer-string) "\n" t))))
-
-(print "test")
 
 (defun mk-proj+-file-list ()
   (mk-proj-assert-proj)
