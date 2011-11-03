@@ -3,7 +3,7 @@
 ;; Copyright (C) 2010-2011  Seung Cheol Jung
 
 ;; Author: Seung Cheol Jung <scjung.hyu at gmail dot com>
-;; Version: 0.2.1
+;; Version: 0.2.2
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
 
 (require 'mk-project)
 
-(defconst mk-proj+-version "0.2.1")
+(defconst mk-proj+-version "0.2.2")
 
 (defgroup mk-project+ nil
   "Enhancement of `mk-project'"
@@ -239,28 +239,6 @@ buffers that `default-directory' is the base directory of the project."
   (when mk-proj-name (mk-proj+-revive-save mk-proj-name)))
 (ad-activate 'mk-proj-kill-emacs-hook)
 
-(defun mk-proj+-completing-read (prompt
-                                 collection
-                                 &optional
-                                 predicate
-                                 require-match
-                                 initial-input
-                                 hist
-                                 def
-                                 inherit-input-method)
-  (let ((completing-read-function
-         (if (featurep 'anything-config)
-             'anything-completing-read-default
-           'completing-read)))
-    (funcall completing-read-function
-             prompt
-             collection
-             predicate
-             require-match
-             initial-input
-             hist
-             def
-             inherit-input-method)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; End-user interface
@@ -268,9 +246,9 @@ buffers that `default-directory' is the base directory of the project."
 (defun project-visit-file ()
   (interactive)
   (mk-proj-assert-proj)
-  (let ((file (mk-proj+-completing-read "File to visit: "
-                                        (append (mk-proj+-dir-list)
-                                                (mk-proj+-file-list)))))
+  (let ((file (completing-read "File to visit: "
+                               (append (mk-proj+-dir-list)
+                                       (mk-proj+-file-list)))))
     (find-file (expand-file-name file mk-proj-basedir))))
 
 (defun project-select-cmd ()
@@ -279,8 +257,8 @@ buffers that `default-directory' is the base directory of the project."
   (let* ((cmds (mk-proj+-get-cmds mk-proj-name))
          (cmd-names (mapcar 'car cmds)))
     (if (cdr cmd-names)
-        (let ((cmd-name (mk-proj+-completing-read "Command to execute: "
-                                                  cmd-names nil t)))
+        (let ((cmd-name (completing-read "Command to execute: "
+                                         cmd-names nil t)))
           (setq mk-proj-compile-cmd (cdr (assoc cmd-name cmds))))
       ; if there is only one command, use that one.
       (setq mk-proj-compile-cmd (cdr (car cmds))))))
