@@ -46,13 +46,13 @@ stored under this directory."
   :group 'mk-project+)
 
 (defcustom mk-proj+-close-nonfile-buffers t
-  "If non-nil, the functions, which closes a project, also closes related
+  "If non-nil, the function, which closes a project, also closes related
 non-file buffers."
   :type 'boolean
   :group 'mk-project+)
 
 (defcustom mk-proj+-close-nonproject-buffers t
-  "If non-nil, the functions, which closes a project, also closes
+  "If non-nil, the function, which closes a project, also closes
 non-project buffers."
   :type 'boolean
   :group 'mk-project+)
@@ -61,6 +61,11 @@ non-project buffers."
   '("*.cm[ioax]" "*.cmxa" "*.o" "*.a" "*.elc")
   "Default ignore file patterns"
   :type '(repeat (string :tag "Glob pattern"))
+  :group 'mk-project+)
+
+(defcustom mk-proj+-use-helm t
+  "If non-nil, use `helm' interface."
+  :type 'boolean
   :group 'mk-project+)
 
 (defsubst mk-proj+-dir (name)
@@ -238,6 +243,14 @@ buffers that `default-directory' is the base directory of the project."
 (defadvice mk-proj-kill-emacs-hook (before revive-save-before-kill-emacs)
   (when mk-proj-name (mk-proj+-revive-save mk-proj-name)))
 (ad-activate 'mk-proj-kill-emacs-hook)
+
+(defadvice project-load (before use-helm-project-load)
+  (when mk-proj+-use-helm
+    (unless (ad-get-arg 0)
+      (ad-set-arg 0 (helm-comp-read "Project Name: "
+                                    (mk-proj-names) :must-match t))
+      )))
+(ad-activate 'project-load)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
