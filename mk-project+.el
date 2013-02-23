@@ -261,7 +261,8 @@ buffers that `default-directory' is the base directory of the project."
   (mk-proj-assert-proj)
   (let ((file (completing-read "File to visit: "
                                (append (mk-proj+-dir-list)
-                                       (mk-proj+-file-list)))))
+                                       (mk-proj+-file-list))
+                               nil t)))
     (find-file (expand-file-name file mk-proj-basedir))))
 
 (defun project-select-cmd ()
