@@ -122,15 +122,13 @@ to a directory.")
 
 (defun mk-proj+-dir-list ()
   (mk-proj-assert-proj)
-  (let ((default-directory (file-name-as-directory mk-proj-basedir))
-        (vcs-path (mk-proj-get-vcs-path)))
-    (with-temp-buffer
-      (if vcs-path
-          (call-process-shell-command "find" nil (current-buffer) nil
-                        "." "-type" "d" "-not" "-path"
-                        vcs-path)
-        (call-process-shell-command "find" nil (current-buffer) nil
-                      mk-proj-basedir "-type" "d"))
+  (with-temp-buffer
+    (let ((default-directory (file-name-as-directory mk-proj-basedir))
+          (vcs-path (mk-proj-get-vcs-path))
+          (args `("find" nil ,(current-buffer) nil "." "-type" "d"
+                  ,(mk-proj-find-cmd-ignore-args mk-proj-ignore-patterns))))
+      (when vcs-path (setq args (append args `("-not" "-path" ,vcs-path))))
+      (apply 'call-process-shell-command args)
       (split-string (buffer-string) "\n" t))))
 
 (defun mk-proj+-file-list ()
