@@ -1,9 +1,9 @@
 ;;; mk-project+.el --- Enhancement of `mk-project.el'
 
-;; Copyright (C) 2010-2014  Seungcheol Jung
+;; Copyright (C) 2010-2013  Seungcheol Jung
 
 ;; Author: Seungcheol Jung <scjung.hyu at gmail dot com>
-;; Version: 0.2.3
+;; Version: 0.2.4
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
 
 (require 'mk-project)
 
-(defconst mk-proj+-version "0.2.3")
+(defconst mk-proj+-version "0.2.4")
 
 (defgroup mk-project+ nil
   "Enhancement of `mk-project'"
