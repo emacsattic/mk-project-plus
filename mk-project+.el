@@ -58,7 +58,8 @@ non-project buffers."
   :group 'mk-project+)
 
 (defcustom mk-proj+-default-ignore-patterns
-  '("*.cm[ioax]" "*.cmxa" "*.o" "*.a" "*.elc")
+  '("*.cm[ioax]" "*.cmxa" "*.o" "*.a" "*.elc"
+    ".svn" "_darcs" ".git" ".bzr" ".hg" ".CVS")
   "Default ignore file patterns"
   :type '(repeat (string :tag "Glob pattern"))
   :group 'mk-project+)
